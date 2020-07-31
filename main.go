@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/immanoj16/micro/handlers"
+	"github.com/immanoj16/go-micro/handlers"
 )
 
 func main() {
@@ -21,6 +21,7 @@ func main() {
 	sm.Handle("/", hh)
 	sm.Handle("/goodbye", gh)
 
+	// create a new server
 	s := &http.Server{
 		Addr:         ":9090",
 		Handler:      sm,
@@ -29,20 +30,26 @@ func main() {
 		WriteTimeout: 1 * time.Second,
 	}
 
+	// start the server
 	go func() {
+		l.Println("Starting server on port 9090")
+
 		err := s.ListenAndServe()
 		if err != nil {
 			l.Fatal(err)
 		}
 	}()
 
+	// trap sigterm or interupt and gracefully shutdown the server
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, os.Kill)
 
+	// Block until a signal is received.
 	sig := <-sigChan
 	l.Println("Recieved terminate, graceful shutdown", sig)
 
+	// gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(tc)
 }
