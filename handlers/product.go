@@ -60,4 +60,5 @@ func (p *Product) addProduct(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	p.l.Printf("Prod: %#v", prod)
+	data.AddProduct(prod)
 }
