@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"github.com/immanoj16/go-micro/data"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/immanoj16/go-micro/data"
 )
 
 // Product struct
