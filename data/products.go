@@ -18,6 +18,12 @@ type Product struct {
 	DeletedOn   string  `json:"-"`
 }
 
+// FromJSON decodes json to product structure
+func (p *Product) FromJSON(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(p)
+}
+
 // Products type
 type Products []*Product
 
