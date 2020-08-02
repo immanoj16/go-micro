@@ -7,16 +7,21 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/immanoj16/go-micro/data"
 )
 
-// Product struct
-type Product struct {
+// KeyProduct is a key used for the Product object in the context
+type KeyProduct struct{}
+
+// Products handler for getting and updating products
+type Products struct {
 	l *log.Logger
+	v *data.Validation
 }
 
-// NewProduct creates a product handler with the given logger
-func NewProduct(l *log.Logger) *Product {
-	return &Product{l}
+// NewProducts returns a new products handler with the given logger
+func NewProducts(l *log.Logger, v *data.Validation) *Products {
+	return &Products{l, v}
 }
 
 // ErrInvalidProductPath is an error message when the product path is not valid
@@ -40,11 +45,12 @@ func getProductID(r *http.Request) int {
 	// parse the product id from the url
 	vars := mux.Vars(r)
 
-	// Convert the id into an integer and return
+	// convert the id into an integer and return
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		// should never happen
 		panic(err)
 	}
+
 	return id
 }
