@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,7 +21,7 @@ func NewProduct(l *log.Logger) *Product {
 	return &Product{l}
 }
 
-// getProducts returns the products from the data store
+// GetProducts returns the products from the data store
 func (p *Product) GetProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET Products")
 
@@ -34,6 +35,7 @@ func (p *Product) GetProducts(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AddProduct is used to add a new product
 func (p *Product) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST Product")
 
@@ -43,6 +45,7 @@ func (p *Product) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	data.AddProduct(&prod)
 }
 
+// UpdateProduct is used to update any existing product
 func (p *Product) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
@@ -70,14 +73,28 @@ func (p *Product) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type KeyProduct struct {}
+// KeyProduct to save context
+type KeyProduct struct{}
 
+// MiddlewareProductValidation is used to validate and marshall the json
 func (p Product) MiddlewareProductValidation(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		prod := data.Product{}
 		err := prod.FromJSON(r.Body)
 		if err != nil {
-			http.Error(rw, "Unable to unmarshall json", http.StatusBadRequest)
+			p.l.Println("[ERROR] deserializing product", err)
+			http.Error(rw, "Error reading product", http.StatusBadRequest)
+			return
+		}
+
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validating product", err)
+			http.Error(
+				rw,
+				fmt.Sprintf("Error validating product: %s", err),
+				http.StatusBadRequest,
+			)
 			return
 		}
 
