@@ -1,31 +1,44 @@
 package data
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"regexp"
-	"time"
 
 	"github.com/go-playground/validator"
 )
 
 // Product defines the structure for an API product
+// swagger:model
 type Product struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name" validate:"required"`
-	Description string  `json:"description"`
-	Price       float32 `json:"price" validate:"gt=0"`
-	SKU         string  `json:"sku" validate:"required,sku"`
-	CreatedOn   string  `json:"-"`
-	UpdatedOn   string  `json:"-"`
-	DeletedOn   string  `json:"-"`
-}
+	// the id for the product
+	//
+	// required: false
+	// min: 1
+	ID int `json:"id"` // Unique identifier for the product
 
-// FromJSON decodes json to product structure
-func (p *Product) FromJSON(r io.Reader) error {
-	e := json.NewDecoder(r)
-	return e.Decode(p)
+	// the name for this product
+	//
+	// required: true
+	// max length: 255
+	Name string `json:"name" validate:"required"`
+
+	// the description for this product
+	//
+	// required: false
+	// max length: 10000
+	Description string `json:"description"`
+
+	// the price of the product
+	//
+	// required: true
+	// min: 0.01
+	Price float32 `json:"price" validate:"gt=0"`
+
+	// the SKU of the product
+	//
+	// required: true
+	// pattern: [a-z]+-[a-z]+-[a-z]+
+	SKU string `json:"sku" validate:"required,sku"`
 }
 
 // Validate used to validate the product struct json
@@ -49,12 +62,6 @@ func validateSKU(fl validator.FieldLevel) bool {
 
 // Products type
 type Products []*Product
-
-// ToJSON encodes to w writter
-func (p *Products) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
-}
 
 // GetProducts returns all the products
 func GetProducts() Products {
@@ -83,6 +90,30 @@ func UpdateProduct(id int, p *Product) error {
 	return nil
 }
 
+// DeleteProduct deletes a product from the database
+func DeleteProduct(id int) error {
+	i := findIndexByProductID(id)
+	if i == -1 {
+		return ErrProductNotFound
+	}
+
+	productList = append(productList[:i], productList[i+1])
+
+	return nil
+}
+
+// findIndex finds the index of a product in the database
+// returns -1 when no product can be found
+func findIndexByProductID(id int) int {
+	for i, p := range productList {
+		if p.ID == id {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // ErrProductNotFound is a custom error if product not found
 var ErrProductNotFound = fmt.Errorf("product not found")
 
@@ -102,8 +133,6 @@ var productList = []*Product{
 		Description: "Frothy milky coffe",
 		Price:       2.45,
 		SKU:         "abc123",
-		CreatedOn:   time.Now().UTC().String(),
-		UpdatedOn:   time.Now().UTC().String(),
 	},
 	&Product{
 		ID:          2,
@@ -111,7 +140,5 @@ var productList = []*Product{
 		Description: "Short and strong coffee without milk",
 		Price:       1.99,
 		SKU:         "fjd34",
-		CreatedOn:   time.Now().UTC().String(),
-		UpdatedOn:   time.Now().UTC().String(),
 	},
 }
