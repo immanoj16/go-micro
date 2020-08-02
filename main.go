@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
-
 	"github.com/gorilla/mux"
 	"github.com/immanoj16/go-micro/data"
 	"github.com/immanoj16/go-micro/handlers"
